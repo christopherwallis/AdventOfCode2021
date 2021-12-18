@@ -101,6 +101,11 @@ The instructions made a square!
 The transparent paper is pretty big, so for now, focus on just completing the first fold. After the first fold in the example above, 17 dots are visible - dots that end up overlapping after the fold is completed count as a single dot.
 
 How many dots are visible after completing just the first fold instruction on your transparent paper?
+
+--- Part Two ---
+Finish folding the transparent paper according to the instructions. The manual says the code is always eight capital letters.
+
+What code do you use to activate the infrared thermal imaging camera system?
 """
 from dataclasses import dataclass
 import numpy
@@ -110,7 +115,7 @@ filename = 'input.txt'
 # filename = 'test_input.txt'
 dots = []
 folds = []
-dot_map = numpy.zeros((2000, 2000))
+dot_map = numpy.zeros((1311, 895))
 
 
 @dataclass
@@ -150,7 +155,17 @@ def wipe_past():
     pass
 
 
-def fold(direction, position: int):
+def fold_it(direction, position: int):
+    global dot_map
+    if direction == 'x':
+        split = numpy.split(dot_map, [position, position + 1], axis=0)
+        dot_map = numpy.add(split[0], numpy.flip(split[2], axis=0))
+    elif direction == 'y':
+        split = numpy.split(dot_map, [position, position + 1], axis=1)
+        dot_map = numpy.add(split[0], numpy.flip(split[2], axis=1))
+
+
+def fold_it_old(direction, position: int):
     global dot_map
     if direction == 'x':
         for row in range(position, len(dot_map)):
@@ -158,12 +173,14 @@ def fold(direction, position: int):
                 if dot_map[row, col] == 1:
                     dot_map[(2 * position) - row, col] = 1
                     dot_map[row, col] = 0
+        dot_map = numpy.resize(dot_map, ((len(dot_map)), position))
     elif direction == 'y':
         for col in range(position, len(dot_map[0])):
             for row in range(len(dot_map)):
                 if dot_map[row, col] == 1:
                     dot_map[row, (2 * position) - col] = 1
                     dot_map[row, col] = 0
+        dot_map = numpy.resize(dot_map, (position, len(dot_map[0])))
 
 
 def count_dots():
@@ -175,9 +192,16 @@ populate_dots()
 print(count_dots())
 # for i in dot_map:
 #     print(i)
-fold(folds[0].split('=')[0], int(folds[0].split('=')[1]))
+for fold in folds:
+    fold_it(fold.split('=')[0], int(fold.split('=')[1]))
 
 print(count_dots())
+numpy.set_printoptions(linewidth=500)
+# output_string = numpy.array2string(dot_map, separator='', max_line_width=1000)
+print(dot_map)
 # for i in dot_map:
-#     print(i)
+#     print(''.join(i))
 print("Complete")
+# count = 0
+for count in range(8):
+    print(dot_map[5 * count: 5 * (count + 1), :m])

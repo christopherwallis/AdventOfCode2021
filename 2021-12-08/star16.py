@@ -254,6 +254,7 @@ def check_line(input_segs, output_segs):
     print("Possibilities")
     for seg in seg_line:
         print(f"{seg_line[seg].segment}: {seg_line[seg].possibilities}")
+    input()
 
 
 def get_data(filename):
@@ -279,6 +280,74 @@ def check_segment_lengths(segments: list, lengths: list):
     return matches
 
 
+def remove_letters(original: str, to_remove: str):
+    output = ""
+    for letter in original:
+        if letter not in to_remove:
+            output += letter
+    return output
+
+
+def check_if_in(original: str, check_for: str):
+    for letter in check_for:
+        if letter not in original:
+            return False
+    return True
+
+
+def combine(first, second):
+    temp = first + second
+    output = ""
+    for character in temp:
+        if character not in output:
+            output += character
+
+    return output
+
+
+def decode_line(input_data: list, outputs_data: list):
+    decoded = {}
+
+    all_data = input_data
+    all_data.extend(outputs_data)
+
+    # Low hanginging fruit:
+    for number in all_data:
+        if len(what_is_possible(number)) == 1:
+            decoded[what_is_possible(number)[0]] = number
+    if len(decoded) != 4:
+        print(f"Warning - decoded {len(decoded)} words - {decoded}")
+    # Differences
+    for number in all_data:
+        if len(number) == 5:
+            if check_if_in(number, decoded[1]):
+                decoded[3] = number
+            else:
+                temp = remove_letters(decoded[4], decoded[1])
+                if check_if_in(number, temp):
+                    decoded[5] = number
+                else:
+                    decoded[2] = number
+    decoded[9] = combine(decoded[1], decoded[5])
+    decoded[6] = combine(remove_letters(decoded[8], decoded[1]), decoded[5])
+
+    # Find zero
+    for number in all_data:
+        if find_match(number, decoded) is None:
+            decoded[0] = number
+    if len(decoded) != 10:
+        print(f"Warning: decoded length = {len(decoded)} - {decoded}")
+    return decoded
+
+
+def find_match(find_item, encoding):
+    for number in encoding:
+        if len(find_item) == len(encoding[number]):
+            if check_if_in(find_item, encoding[number]):
+                return number
+    return None
+
+
 start = time.time()
 total = get_data(filename)
 print(f"Lines of data: {total}")
@@ -288,4 +357,23 @@ for line in outputs:
     number_of_matches += check_segment_lengths(line, matching_lengths)
 print(f"Matches: {number_of_matches}")
 
-check_line(inputs[0], outputs[0])
+# check_line(inputs[0], outputs[0])
+print(f"{time.time() - start}s")
+sum_outputs = 0
+for line in range(len(outputs)):
+    code = decode_line(inputs[line], outputs[line])
+    # for line in code:
+    #     print(f"{line}: {code[line]}")
+
+    output = ""
+    for item in outputs[line]:
+        match = find_match(item, code)
+        if match is None:
+            print(f"No match for {item} in {code}")
+        else:
+            output += f"{match}"
+    print(output)
+    sum_outputs += int(output)
+print(f"Sum outputs = {sum_outputs}")
+print(f"{time.time() - start}s")
+
